@@ -2,9 +2,9 @@
 
 #============================================================================
 #	PxXMLDomParser
-#	varsion 1.0.1
+#	varsion 1.0.2
 #	(C)Tomoya Koyanagi.
-#	LastUpdate : 16:51 2010/08/15
+#	LastUpdate : 19:18 2010/09/08
 
 class PxXMLDomParser{
 	var $last_find_selector = null; //←前回のfind()に使用したセレクタ文字列を記憶。
@@ -450,10 +450,12 @@ class PxXMLDomParser{
 							#--------------------------------------
 						}
 						$starttag = '<'.$MEMO['tagOriginal'];
-						foreach( $MEMO['attribute'] as $attName=>$attVal ){
-							$starttag .= ' '.htmlspecialchars($attName);
-							if( !is_null( $attVal ) ){
-								$starttag .= '="'.htmlspecialchars( $attVal ).'"';
+						if( is_array($MEMO['attribute']) ){
+							foreach( $MEMO['attribute'] as $attName=>$attVal ){
+								$starttag .= ' '.htmlspecialchars($attName);
+								if( !is_null( $attVal ) ){
+									$starttag .= '="'.htmlspecialchars( $attVal ).'"';
+								}
 							}
 						}
 						if( strlen( $MEMO['self_closed_flg'] ) ){

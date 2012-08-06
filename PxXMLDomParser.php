@@ -1,10 +1,10 @@
 <?php
 
 #============================================================================
-#	Px XML DOM パーサ
-#	varsion 1.0.0
+#	PxXMLDomParser
+#	varsion 1.0.1
 #	(C)Tomoya Koyanagi.
-#	Last update : 14:24 2010/01/11
+#	LastUpdate : 16:51 2010/08/15
 
 class PxXMLDomParser{
 	var $last_find_selector = null; //←前回のfind()に使用したセレクタ文字列を記憶。
@@ -19,6 +19,12 @@ class PxXMLDomParser{
 
 	var $errorlist = array();
 		#	内部エラーを記憶する器。
+
+	var $confvalues = array( // ←各種設定 PxXMLDomParser 1.0.1 追加
+		//この設定値は、config()を通じて入出力してください。
+		'tags_case_sensitive'=>true ,//←タグの大文字小文字を区別するか。true=区別する(default),false=区別しない;
+		'atts_case_sensitive'=>true ,//←属性の大文字小文字を区別するか。true=区別する(default),false=区別しない;
+	);
 
 	#--------------------------------------
 	#	コンストラクタ
@@ -41,6 +47,31 @@ class PxXMLDomParser{
 			$bin = $this->convert_encoding( $bin , mb_internal_encoding() , $detect_encoding );
 		}
 		$this->bin = $bin;
+	}
+
+	#--------------------------------------
+	#	設定の入出力
+	function config( $key , $val = null ){
+		if( !strlen( $key ) ){ return null; }
+		$args = func_get_args();
+		if( count($args) <= 1 ){
+			//GETモード
+			return $this->confvalues[$key];
+		}else{
+			//SETモード
+			switch( strtolower($key) ){
+				case 'tags_case_sensitive':
+				case 'atts_case_sensitive':
+					//boolな項目
+					$this->confvalues[$key] = !empty($val);
+					break;
+				default:
+					//なんでもありな項目
+					$this->confvalues[$key] = $val;
+					break;
+			}
+			return true;
+		}
 	}
 
 	#--------------------------------------
@@ -157,7 +188,15 @@ class PxXMLDomParser{
 			}
 		}
 		if( !strlen( $RTN ) && is_callable('mb_detect_encoding') ){
-			$RTN = mb_detect_encoding( $bin );
+			$i = 0;
+			while( 1 ){
+				$RTN = mb_detect_encoding( $bin );
+				if( $RTN !== false ){
+					break;
+				}
+				$bin = preg_replace( '/^.*?[a-zA-Z0-9'.preg_quote('-_.,=<>{}[]()"\'^~+*:;/|','/').']+/s' , '' , $bin );
+				if( $i > 10000 ){ break; }
+			}
 		}
 		return $RTN;
 	}
@@ -223,7 +262,36 @@ class PxXMLDomParser{
 		$str_next = $bin;
 		while( strlen( $str_next ) ){
 
-			if( !preg_match( $pattern_html , $str_next , $results ) ){
+			$is_hit = 0;
+			$str_nextMemo = '';
+			while( 1 ){
+				#	PxFW 0.6.6 : ヒットしなかった場合にリトライするようにした。
+				#	PxFW 0.6.7 : リトライのロジックを見直した。
+				#	(http://www.pxt.jp/ja/diary/article/218/index.html この問題への対応)
+				$tmp_start = strpos( $str_next , '<' );
+				if( !is_int( $tmp_start ) || $tmp_start < 0 ){
+					#	[<]記号 が見つからなかったら、
+					#	本当にヒットしなかったものとみなせる。
+					$str_next    = $str_nextMemo.$str_next;
+					break;
+				}
+				$str_nextMemo .= substr( $str_next , 0 , $tmp_start );
+				$str_next = substr( $str_next , $tmp_start );
+				$is_hit = preg_match( $pattern_html , $str_next , $results );
+				if( $is_hit ){
+					#	ヒットしたらここでbreak;
+					$results[1] = $str_nextMemo.$results[1];
+					$str_next    = $str_nextMemo.$str_next;
+					break;
+				}
+				//今回先頭にあるはずの[<]記号を $str_nextMemo に移してリトライ
+				$str_nextMemo .= substr( $str_next , 0 , 1 );
+				$str_next = substr( $str_next , 1 );
+			}
+			unset( $str_nextMemo );
+			unset( $tmp_start );
+
+			if( !$is_hit ){
 				$this->bin = $str_prev.$str_next;
 				return $RTN;
 			}
@@ -470,14 +538,28 @@ class PxXMLDomParser{
 
 					#	タグ名を評価
 					if( strlen( $selectorInfo['tagName'] ) && $selectorInfo['tagName'] != '*' ){
-						if( $selectorInfo['tagName'] != $kouho[$i]['tag'] ){
-							$is_hit = false;//ヒットしない
+						if( !$this->config( 'tags_case_sensitive' ) ){
+							//大文字小文字の区別をしない : PxXMLDomParser 1.0.1
+							if( strtolower($selectorInfo['tagName']) != strtolower($kouho[$i]['tag']) ){
+								$is_hit = false;//ヒットしない
+							}
+						}else{
+							if( $selectorInfo['tagName'] != $kouho[$i]['tag'] ){
+								$is_hit = false;//ヒットしない
+							}
 						}
 					}
 					#	ID名を評価
 					if( strlen( $selectorInfo['id'] ) ){
-						if( $selectorInfo['id'] != $kouho[$i]['attribute']['id'] ){
-							$is_hit = false;//ヒットしない
+						if( !$this->config( 'atts_case_sensitive' ) ){
+							//大文字小文字の区別をしない : PxXMLDomParser 1.0.1
+							if( strtolower($selectorInfo['id']) != strtolower($kouho[$i]['attribute']['id']) ){
+								$is_hit = false;//ヒットしない
+							}
+						}else{
+							if( $selectorInfo['id'] != $kouho[$i]['attribute']['id'] ){
+								$is_hit = false;//ヒットしない
+							}
 						}
 					}
 					#	class名を評価
@@ -486,9 +568,17 @@ class PxXMLDomParser{
 						foreach( $selectorInfo['class'] as $selector_class ){
 							foreach( preg_split( '/\s+/' , $kouho[$i]['attribute']['class'] ) as $tag_class ){
 								if( !strlen( $tag_class ) ){ continue; }
-								if( $selector_class == $tag_class ){
-									$classname_is_hit = true;
-									break 2;
+								if( !$this->config( 'atts_case_sensitive' ) ){
+									//大文字小文字の区別をしない : PxXMLDomParser 1.0.1
+									if( strtolower($selector_class) == strtolower($tag_class) ){
+										$classname_is_hit = true;
+										break 2;
+									}
+								}else{
+									if( $selector_class == $tag_class ){
+										$classname_is_hit = true;
+										break 2;
+									}
 								}
 							}
 						}
@@ -500,9 +590,17 @@ class PxXMLDomParser{
 					if( is_array( $selectorInfo['attributes'] ) && count( $selectorInfo['attributes'] ) ){
 						$att_is_hit = false;
 						foreach( $selectorInfo['attributes'] as $selector_att_key=>$selector_att_val ){
-							if( $kouho[$i]['attribute'][$selector_att_key] == $selector_att_val ){
-								$att_is_hit = true;
-								break;
+							if( !$this->config( 'atts_case_sensitive' ) ){
+								//大文字小文字の区別をしない : PxXMLDomParser 1.0.1
+								if( strtolower($kouho[$i]['attribute'][$selector_att_key]) == strtolower($selector_att_val) ){
+									$att_is_hit = true;
+									break;
+								}
+							}else{
+								if( $kouho[$i]['attribute'][$selector_att_key] == $selector_att_val ){
+									$att_is_hit = true;
+									break;
+								}
 							}
 						}
 						if( !$att_is_hit ){
@@ -702,7 +800,12 @@ class PxXMLDomParser{
 		#	属性の中にタグがあってはならない
 		$atteribute = ''.$rnsp.'*?(?:'.$rnsp.'*(?:'.$att.')(?:'.$rnsp.'*'.preg_quote('=','/').''.$rnsp.'*?(?:(?:[^"\' ]+?)|([\'"]?).*?\7))?'.$rnsp.'*)*';
 
-		$pregstring = '/^(.*?)(?:('.preg_quote('<'.'?','/').'(?:php)?)|('.preg_quote('<![CDATA[','/').')|('.preg_quote('<!--','/').')|(<(\/?)?(?:'.preg_quote($tagname,'/').')(?:'.$rnsp.'+?'.$atteribute.')?'.'>))(.*)$/is';
+		$case_sensitive_option = '';
+		if( !$this->config( 'tags_case_sensitive' ) ){
+			$case_sensitive_option = 'i';//←大文字小文字の区別をしない : PxXMLDomParser 1.0.1
+		}
+
+		$pregstring = '/^(.*?)(?:('.preg_quote('<'.'?','/').'(?:php)?)|('.preg_quote('<![CDATA[','/').')|('.preg_quote('<!--','/').')|(<(\/?)?(?:'.preg_quote($tagname,'/').')(?:'.$rnsp.'+?'.$atteribute.')?'.'>))(.*)$/'.$case_sensitive_option.'s';
 
 		$safetycounter = 0;
 		$RTN = array(
@@ -724,10 +827,19 @@ class PxXMLDomParser{
 
 			$is_hit = 0;
 			$stringsMemo = '';
-			$unitLength = 15000;//←この長さの分ずつ減らして試してみる。
 			while( 1 ){
-				#	PxPW 0.6.6 : ヒットしなかった場合にリトライするようにした。
+				#	PxFW 0.6.6 : ヒットしなかった場合にリトライするようにした。
+				#	PxFW 0.6.7 : リトライのロジックを見直した。
 				#	(http://www.pxt.jp/ja/diary/article/218/index.html この問題への対応)
+				$tmp_start = strpos( $strings , '<' );
+				if( !is_int( $tmp_start ) || $tmp_start < 0 ){
+					#	[<]記号 が見つからなかったら、
+					#	本当にヒットしなかったものとみなせる。
+					$strings    = $stringsMemo.$strings;
+					break;
+				}
+				$stringsMemo .= substr( $strings , 0 , $tmp_start );
+				$strings = substr( $strings , $tmp_start );
 				$is_hit = preg_match( $pregstring , $strings , $results );
 				if( $is_hit ){
 					#	ヒットしたらここでbreak;
@@ -735,16 +847,12 @@ class PxXMLDomParser{
 					$strings    = $stringsMemo.$strings;
 					break;
 				}
-				if( strlen( $strings ) < $unitLength ){
-					#	検索対象が$unitLengthバイトを切っていたら、
-					#	本当にヒットしなかったものとみなせる。
-					$strings    = $stringsMemo.$strings;
-					break;
-				}
-				$stringsMemo .= substr( $strings , 0 , $unitLength );
-				$strings = substr( $strings , $unitLength );
+				//今回先頭にあるはずの[<]記号を $stringsMemo に移してリトライ
+				$stringsMemo .= substr( $strings , 0 , 1 );
+				$strings = substr( $strings , 1 );
 			}
 			unset( $stringsMemo );
+			unset( $tmp_start );
 
 			if( $is_hit ){
 				#	何かしらの結果があった場合

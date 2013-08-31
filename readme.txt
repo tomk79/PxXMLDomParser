@@ -2,9 +2,9 @@
 
 #============================================================================
 #	PxXMLDomParser
-#	varsion 1.0.2
+#	varsion 1.0.3
 #	(C)Tomoya Koyanagi.
-#	LastUpdate : 19:18 2010/09/08
+#	LastUpdate : 2013/09/01 01:15
 
 PxXMLDomParserは、XHTMLなどのXMLファイルをDOM解析し、
 特定の部分を抜き出したり、書き換えたりするためのPHPクラスライブラリです。
@@ -28,6 +28,9 @@ PHPのお使いの環境の任意の場所に設置してください。PHP4系�
 
 
 【更新履歴】
+
+■PxXMLDomParser 1.0.3 (2013/09/01)
+・innerHTMLがない閉じタグがある場合に、outerHTMLが閉じない状態で出力される不具合を修正。
 
 ■PxXMLDomParser 1.0.2 (2010/09/08)
 ・属性がない要素をreplace()した時にforeach構文でエラーが起こる不具合を修正。

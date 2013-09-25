@@ -1,11 +1,10 @@
 <?php
 
-#============================================================================
-#	PxXMLDomParser
-#	varsion 1.0.3
-#	(C)Tomoya Koyanagi.
-#	LastUpdate : 2013/09/01 01:15
-
+/**
+ * PxXMLDomParser
+ * varsion 1.0.3-nb
+ * (C)Tomoya Koyanagi.
+ */
 class PxXMLDomParser{
 	var $last_find_selector = null; //←前回のfind()に使用したセレクタ文字列を記憶。
 	var $bin = null; //←XMLの本体を格納(String)
@@ -26,8 +25,9 @@ class PxXMLDomParser{
 		'atts_case_sensitive'=>true ,//←属性の大文字小文字を区別するか。true=区別する(default),false=区別しない;
 	);
 
-	#--------------------------------------
-	#	コンストラクタ
+	/**
+	 * コンストラクタ
+	 */
 	function PxXMLDomParser( $bin , $input_type = null ){
 		if( !strlen( $input_type ) ){
 			#	$input_type (入力の種類)を省略したら、自動的に判断する。
@@ -49,8 +49,9 @@ class PxXMLDomParser{
 		$this->bin = $bin;
 	}
 
-	#--------------------------------------
-	#	設定の入出力
+	/**
+	 * 設定の入出力
+	 */
 	function config( $key , $val = null ){
 		if( !strlen( $key ) ){ return null; }
 		$args = func_get_args();
@@ -74,72 +75,83 @@ class PxXMLDomParser{
 		}
 	}
 
-	#--------------------------------------
-	#	セレクタをセットする(セットするだけ)
+	/**
+	 * セレクタをセットする(セットするだけ)
+	 */
 	function select( $selector ){
 		$selector = trim( $selector );
 		if( !strlen( $selector ) ){ return false; }
 		$this->last_find_selector = $selector;
 		return true;
 	}
-	#--------------------------------------
-	#	セレクタから要素を探す
+	/**
+	 * セレクタから要素を探す
+	 */
 	function find( $selector ){
 		$selector = trim( $selector );
 		if( !strlen( $selector ) ){ return false; }
 		$this->last_find_selector = $selector;
 		return $this->dom_command( 'find' );
 	}
-	#--------------------------------------
-	#	属性をセットする
+	/**
+	 * 属性をセットする
+	 */
 	function attr( $attname , $value ){
 		if( !strlen( $this->last_find_selector ) ){ return false; }
 		return $this->dom_command( 'att' , array('attname'=>trim($attname),'value'=>$value) );
 	}
-	#--------------------------------------
-	#	スタイルをセットする
+	/**
+	 * スタイルをセットする
+	 */
 	function css( $property , $value ){
 		if( !strlen( $this->last_find_selector ) ){ return false; }
 		return $this->dom_command( 'css' , array('property'=>trim($property),'value'=>$value) );
 	}
-	#--------------------------------------
-	#	CSSクラスを追加する
+	/**
+	 * CSSクラスを追加する
+	 */
 	function addclass( $className ){
 		if( !strlen( $this->last_find_selector ) ){ return false; }
 		return $this->dom_command( 'addclass' , array('className'=>trim($className)) );
 	}
-	#--------------------------------------
-	#	CSSクラスを削除する
+	/**
+	 * CSSクラスを削除する
+	 */
 	function removeclass( $className ){
 		if( !strlen( $this->last_find_selector ) ){ return false; }
 		return $this->dom_command( 'removeclass' , array('className'=>trim($className)) );
 	}
-	#--------------------------------------
-	#	innerHTMLをセットする
+	/**
+	 * innerHTMLをセットする
+	 */
 	function html( $html ){
 		if( !strlen( $this->last_find_selector ) ){ return false; }
 		return $this->dom_command( 'html' , array('html'=>$html) );
 	}
-	#--------------------------------------
-	#	innerHTMLにテキストをセットする
+	/**
+	 * innerHTMLにテキストをセットする
+	 */
 	function text( $html ){
 		if( !strlen( $this->last_find_selector ) ){ return false; }
 		return $this->dom_command( 'html' , array('html'=>htmlspecialchars($html)) );
 	}
-	#--------------------------------------
-	#	outerHTMLを置き換える
+	/**
+	 * outerHTMLを置き換える
+	 */
 	function replace( $method ){
 		if( !strlen( $this->last_find_selector ) ){ return false; }
 		return $this->dom_command( 'replace' , array('replace_method'=>$method) );
 	}
-	#--------------------------------------
-	#	現時点でのソースコード全体を取得する
+	/**
+	 * 現時点でのソースコード全体を取得する
+	 */
 	function get_src(){
 		return $this->bin;
 	}
 
-	#--------------------------------------
-	#	HTMLファイル $path の文字エンコード名を得る
+	/**
+	 * HTMLファイル $path の文字エンコード名を得る
+	 */
 	function html_detect_encoding( $path ){
 		if( !is_file( $path ) ){ return false; }
 		$src = file_get_contents( $path );
@@ -204,8 +216,9 @@ class PxXMLDomParser{
 
 
 
-	#--------------------------------------
-	#	HTMLファイルからコンテンツ領域のみを抜き出す
+	/**
+	 * HTMLファイルからコンテンツ領域のみを抜き出す
+	 */
 	function get_contents( $options = null ){
 		if( strlen( $options['start'] ) && strlen( $options['end'] ) ){
 			#	マークで見つける
@@ -218,8 +231,9 @@ class PxXMLDomParser{
 		return $bin;
 	}
 
-	#--------------------------------------
-	#	コンテンツをマークで見つける
+	/**
+	 * コンテンツをマークで見つける
+	 */
 	function get_contents_by_mark( $mark_start , $mark_end ){
 		$bin = $this->bin;
 
@@ -237,13 +251,12 @@ class PxXMLDomParser{
 
 		return $bin;
 	}//get_contents_by_mark();
-	#	/ コンテンツをマークで見つける
-	#--------------------------------------
 
 
 
-	#--------------------------------------
-	#	DOMコマンドを実行する
+	/**
+	 * DOMコマンドを実行する
+	 */
 	function dom_command( $command_name = 'find' , $option = array() ){
 		if( !strlen( $this->last_find_selector ) ){ return false; }
 		$selector = $this->last_find_selector;
@@ -517,11 +530,10 @@ class PxXMLDomParser{
 
 		return $RTN;
 	}//dom_command();
-	#	/ コンテンツをセレクタで見つける
-	#--------------------------------------
 
-	#--------------------------------------
-	#	セレクタにヒットする要素か否か調べる
+	/**
+	 * セレクタにヒットする要素か否か調べる
+	 */
 	function is_element_hit( $pedigree , $selectorInfoList ){
 		$kouhoList = array();
 		array_push( $kouhoList , $pedigree );
@@ -649,14 +661,13 @@ class PxXMLDomParser{
 			}
 		}
 		return false;
-	}
-	#	/ セレクタにヒットする要素か否か調べる
-	#--------------------------------------
+	}//is_element_hit()
 
 
 
-	#--------------------------------------
-	#	セレクタを整理する。
+	/**
+	 * セレクタを整理する。
+	 */
 	function parse_cssselector( $selector ){
 		$tmp_selectorList = preg_split( '/\s+/' , $selector );
 		$selectorList = array();
@@ -735,14 +746,13 @@ class PxXMLDomParser{
 
 		return $RTN;
 	}//parse_cssselector()
-	#	/ セレクタを整理する。
-	#--------------------------------------
 
 
 
-	#--------------------------------------
-	#	HTMLタグを検出するPREGパターンを生成して返す。
-	#	(base_resources_htmlparser からの移植->改造)
+	/**
+	 * HTMLタグを検出するPREGパターンを生成して返す。
+	 * (base_resources_htmlparser からの移植->改造)
+	 */
 	function get_pattern_html( $tagName = null ){
 		#	タグの種類
 		$tag = $this->pattern_html;
@@ -766,12 +776,11 @@ class PxXMLDomParser{
 
 		return	$pregstring;
 	}//get_pattern_html();
-	#	/ HTMLタグを検出するPREGパターンを生成して返す。
-	#--------------------------------------
 
-	#--------------------------------------
-	#	タグの属性情報を検出するPREGパターンを生成して返す。
-	#	(base_resources_htmlparser からの移植)
+	/**
+	 * タグの属性情報を検出するPREGパターンを生成して返す。
+	 * (base_resources_htmlparser からの移植)
+	 */
 	function get_pattern_attribute(){
 		#	属性の種類
 		$rnsp = '(?:\r\n|\r|\n| |\t)';
@@ -784,12 +793,11 @@ class PxXMLDomParser{
 
 		return	$prop_exists;
 	}//get_pattern_attribute();
-	#	/ タグの属性情報を検出するPREGパターンを生成して返す。
-	#--------------------------------------
 
-	#--------------------------------------
-	#	閉じタグを検索する
-	#	(base_resources_htmlparser からの移植)
+	/**
+	 * 閉じタグを検索する
+	 * (base_resources_htmlparser からの移植)
+	 */
 	function search_closetag( $tagname , $strings ){
 		#	タグの深さ
 		$att = $this->pattern_attribute;
@@ -833,7 +841,7 @@ class PxXMLDomParser{
 				#	PxFW 0.6.6 : ヒットしなかった場合にリトライするようにした。
 				#	PxFW 0.6.7 : リトライのロジックを見直した。
 				#	(http://www.pxt.jp/ja/diary/article/218/index.html この問題への対応)
-				$tmp_start = strpos( $strings , '<' );
+				$tmp_start = strpos( $strings , '<'.$tagname );
 				if( !is_int( $tmp_start ) || $tmp_start < 0 ){
 					#	[<]記号 が見つからなかったら、
 					#	本当にヒットしなかったものとみなせる。
@@ -943,12 +951,11 @@ class PxXMLDomParser{
 		return $RTN;
 
 	}//search_closetag();
-	#	/ 閉じタグを検索する
-	#--------------------------------------
 
 
-	#----------------------------------------------------------------------------
-	#	HTML属性の解析
+	/**
+	 * HTML属性の解析
+	 */
 	function html_attribute_parse( $strings ){
 		preg_match_all( $this->get_pattern_attribute() , $strings , $results );
 		for( $i = 0; !is_null($results[0][$i]); $i++ ){
@@ -963,14 +970,14 @@ class PxXMLDomParser{
 		}
 		return	$RTN;
 	}//html_attribute_parse();
-	#	/ HTML属性の解析
-	#----------------------------------------------------------------------------
 
 	#----------------------------------------------------------------------------
 	#	内部エラーハンドラ
 
-	#	クラス内にエラーを保持する
-	#	(base_resources_htmlparser からの移植)
+	/**
+	 * クラス内にエラーを保持する
+	 * (base_resources_htmlparser からの移植)
+	 */
 	function error( $errormessage , $FILE = null , $LINE = null ){
 		$ERROR = array();
 		$ERROR['msg'] = $errormessage;
@@ -980,14 +987,18 @@ class PxXMLDomParser{
 		return	true;
 	}
 
-	#	保持したエラーを取得する
-	#	(base_resources_htmlparser からの移植)
+	/**
+	 * 保持したエラーを取得する
+	 * (base_resources_htmlparser からの移植)
+	 */
 	function get_errorlist(){
 		return	$this->errorlist;
 	}
 
-	#	エラーが発生したか否か調べる
-	#	(base_resources_htmlparser からの移植)
+	/**
+	 * エラーが発生したか否か調べる
+	 * (base_resources_htmlparser からの移植)
+	 */
 	function is_error(){
 		if( count( $this->errorlist ) ){
 			return	true;
@@ -995,9 +1006,10 @@ class PxXMLDomParser{
 		return	false;
 	}
 
-	#----------------------------------------------------------------------------
-	#	受け取ったテキストを、指定の文字コードに変換する
-	#	PxFW base_static_text からの移植
+	/**
+	 * 受け取ったテキストを、指定の文字コードに変換する
+	 * PxFW base_static_text からの移植
+	 */
 	function convert_encoding( $TEXT = null , $encode = null , $encodefrom = null ){
 		if( !is_callable( 'mb_internal_encoding' ) ){ return $TEXT; }
 		if( !strlen( $encodefrom ) ){ $encodefrom = mb_internal_encoding().',UTF-8,SJIS,EUC-JP,JIS'; }

@@ -841,7 +841,7 @@ class PxXMLDomParser{
 				#	PxFW 0.6.6 : ヒットしなかった場合にリトライするようにした。
 				#	PxFW 0.6.7 : リトライのロジックを見直した。
 				#	(http://www.pxt.jp/ja/diary/article/218/index.html この問題への対応)
-				$tmp_start = strpos( $strings , '<'.$tagname );
+				$tmp_start = strpos( $strings , '<' );
 				if( !is_int( $tmp_start ) || $tmp_start < 0 ){
 					#	[<]記号 が見つからなかったら、
 					#	本当にヒットしなかったものとみなせる。

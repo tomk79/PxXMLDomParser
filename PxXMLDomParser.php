@@ -275,34 +275,36 @@ class PxXMLDomParser{
 		$str_next = $bin;
 		while( strlen( $str_next ) ){
 
-			$is_hit = 0;
-			$str_nextMemo = '';
-			while( 1 ){
-				#	PxFW 0.6.6 : ヒットしなかった場合にリトライするようにした。
-				#	PxFW 0.6.7 : リトライのロジックを見直した。
-				#	(http://www.pxt.jp/ja/diary/article/218/index.html この問題への対応)
-				$tmp_start = strpos( $str_next , '<' );
-				if( !is_int( $tmp_start ) || $tmp_start < 0 ){
-					#	[<]記号 が見つからなかったら、
-					#	本当にヒットしなかったものとみなせる。
-					$str_next    = $str_nextMemo.$str_next;
-					break;
-				}
-				$str_nextMemo .= substr( $str_next , 0 , $tmp_start );
-				$str_next = substr( $str_next , $tmp_start );
-				$is_hit = preg_match( $pattern_html , $str_next , $results );
-				if( $is_hit ){
-					#	ヒットしたらここでbreak;
-					$results[1] = $str_nextMemo.$results[1];
-					$str_next    = $str_nextMemo.$str_next;
-					break;
-				}
-				//今回先頭にあるはずの[<]記号を $str_nextMemo に移してリトライ
-				$str_nextMemo .= substr( $str_next , 0 , 1 );
-				$str_next = substr( $str_next , 1 );
-			}
-			unset( $str_nextMemo );
-			unset( $tmp_start );
+			// $is_hit = 0;
+			// $str_nextMemo = '';
+			// while( 1 ){
+			// 	#	PxFW 0.6.6 : ヒットしなかった場合にリトライするようにした。
+			// 	#	PxFW 0.6.7 : リトライのロジックを見直した。
+			// 	#	(http://www.pxt.jp/ja/diary/article/218/index.html この問題への対応)
+			// 	$tmp_start = strpos( $str_next , '<' );
+			// 	if( !is_int( $tmp_start ) || $tmp_start < 0 ){
+			// 		#	[<]記号 が見つからなかったら、
+			// 		#	本当にヒットしなかったものとみなせる。
+			// 		$str_next    = $str_nextMemo.$str_next;
+			// 		break;
+			// 	}
+			// 	$str_nextMemo .= substr( $str_next , 0 , $tmp_start );
+			// 	$str_next = substr( $str_next , $tmp_start );
+			// 	$is_hit = preg_match( $pattern_html , $str_next , $results );
+			// 	if( $is_hit ){
+			// 		#	ヒットしたらここでbreak;
+			// 		$results[1] = $str_nextMemo.$results[1];
+			// 		$str_next    = $str_nextMemo.$str_next;
+			// 		break;
+			// 	}
+			// 	//今回先頭にあるはずの[<]記号を $str_nextMemo に移してリトライ
+			// 	$str_nextMemo .= substr( $str_next , 0 , 1 );
+			// 	$str_next = substr( $str_next , 1 );
+			// }
+			// unset( $str_nextMemo );
+			// unset( $tmp_start );
+
+			list($is_hit, $str_next, $results) = $this->safety_preg_match($pattern_html , $str_next);
 
 			if( !$is_hit ){
 				$this->bin = $str_prev.$str_next;
@@ -833,36 +835,35 @@ class PxXMLDomParser{
 				return array( 'content_str'=>$msg , 'str_next'=>'' );
 			}
 
-			$i = 0;
-
-			$is_hit = 0;
-			$stringsMemo = '';
-			while( 1 ){
-				#	PxFW 0.6.6 : ヒットしなかった場合にリトライするようにした。
-				#	PxFW 0.6.7 : リトライのロジックを見直した。
-				#	(http://www.pxt.jp/ja/diary/article/218/index.html この問題への対応)
-				$tmp_start = strpos( $strings , '<' );
-				if( !is_int( $tmp_start ) || $tmp_start < 0 ){
-					#	[<]記号 が見つからなかったら、
-					#	本当にヒットしなかったものとみなせる。
-					$strings    = $stringsMemo.$strings;
-					break;
-				}
-				$stringsMemo .= substr( $strings , 0 , $tmp_start );
-				$strings = substr( $strings , $tmp_start );
-				$is_hit = preg_match( $pregstring , $strings , $results );
-				if( $is_hit ){
-					#	ヒットしたらここでbreak;
-					$results[1] = $stringsMemo.$results[1];
-					$strings    = $stringsMemo.$strings;
-					break;
-				}
-				//今回先頭にあるはずの[<]記号を $stringsMemo に移してリトライ
-				$stringsMemo .= substr( $strings , 0 , 1 );
-				$strings = substr( $strings , 1 );
-			}
-			unset( $stringsMemo );
-			unset( $tmp_start );
+			// $is_hit = 0;
+			// $stringsMemo = '';
+			// while( 1 ){
+			// 	#	PxFW 0.6.6 : ヒットしなかった場合にリトライするようにした。
+			// 	#	PxFW 0.6.7 : リトライのロジックを見直した。
+			// 	#	(http://www.pxt.jp/ja/diary/article/218/index.html この問題への対応)
+			// 	$tmp_start = strpos( $strings , '<' );
+			// 	if( !is_int( $tmp_start ) || $tmp_start < 0 ){
+			// 		#	[<]記号 が見つからなかったら、
+			// 		#	本当にヒットしなかったものとみなせる。
+			// 		$strings    = $stringsMemo.$strings;
+			// 		break;
+			// 	}
+			// 	$stringsMemo .= substr( $strings , 0 , $tmp_start );
+			// 	$strings = substr( $strings , $tmp_start );
+			// 	$is_hit = preg_match( $pregstring , $strings , $results );
+			// 	if( $is_hit ){
+			// 		#	ヒットしたらここでbreak;
+			// 		$results[1] = $stringsMemo.$results[1];
+			// 		$strings    = $stringsMemo.$strings;
+			// 		break;
+			// 	}
+			// 	//今回先頭にあるはずの[<]記号を $stringsMemo に移してリトライ
+			// 	$stringsMemo .= substr( $strings , 0 , 1 );
+			// 	$strings = substr( $strings , 1 );
+			// }
+			// unset( $stringsMemo );
+			// unset( $tmp_start );
+			list($is_hit, $strings, $results) = $this->safety_preg_match($pregstring , $strings);
 
 			if( $is_hit ){
 				#	何かしらの結果があった場合
@@ -952,6 +953,52 @@ class PxXMLDomParser{
 
 	}//search_closetag();
 
+
+	/**
+	 * 安全に preg_match()
+	 * http://www.pxt.jp/ja/diary/article/218/index.html この問題への対応。
+	 */
+	function safety_preg_match( $pregstring, $strings ){
+		// PHPのバグ、修正された？
+		//   MacOSX 10.8.5 + MAMPP
+		//   PHP 5.4.10
+		//   Apache/2.2.23
+		// この環境では問題なさそうなので、普通の preg_match() に置き換えました。
+		// もし、問題が再現するようであれば、次の2行をコメントアウトしてください。
+		$is_hit = preg_match( $pregstring , $strings , $results );
+		return array($is_hit, $strings, $results);
+
+		// ------
+
+		$is_hit = 0;
+		$stringsMemo = '';
+		$tmp_start = null;
+		$results = array();
+		while( 1 ){
+			$tmp_start = strpos( $strings , '<' );
+			if( !is_int( $tmp_start ) || $tmp_start < 0 ){
+				#	[<]記号 が見つからなかったら、
+				#	本当にヒットしなかったものとみなせる。
+				$strings = $stringsMemo.$strings;
+				break;
+			}
+			$stringsMemo .= substr( $strings , 0 , $tmp_start );
+			$strings = substr( $strings , $tmp_start );
+			$is_hit = preg_match( $pregstring , $strings , $results );
+			if( $is_hit ){
+				#	ヒットしたらここでbreak;
+				$results[1] = $stringsMemo.$results[1];
+				$strings    = $stringsMemo.$strings;
+				break;
+			}
+			//今回先頭にあるはずの[<]記号を $stringsMemo に移してリトライ
+			$stringsMemo .= substr( $strings , 0 , 1 );
+			$strings = substr( $strings , 1 );
+		}
+		unset( $stringsMemo );
+		unset( $tmp_start );
+		return array($is_hit, $strings, $results);
+	}//safety_preg_match()
 
 	/**
 	 * HTML属性の解析

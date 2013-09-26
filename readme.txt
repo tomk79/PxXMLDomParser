@@ -33,7 +33,7 @@ PHP4系または5系。
 
 【更新履歴】
 
-■PxXMLDomParser 1.0.4 (2013/**/**)
+■PxXMLDomParser 1.0.4 (2013/09/26)
 ・タグ検索のパフォーマンス向上。
 
 ■PxXMLDomParser 1.0.3 (2013/09/01)

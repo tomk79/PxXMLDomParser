@@ -2,7 +2,7 @@
 
 /**
  * PxXMLDomParser
- * varsion 1.0.3-nb
+ * varsion 1.0.4
  * (C)Tomoya Koyanagi.
  */
 class PxXMLDomParser{
